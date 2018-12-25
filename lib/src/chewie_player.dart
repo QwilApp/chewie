@@ -73,13 +73,12 @@ class Chewie extends StatefulWidget {
     this.showControls = true,
     this.allowedScreenSleep = true,
     this.isLive = false,
-  })  : assert(controller != null,
-            'You must provide a controller to play a video'),
+  })  : assert(controller != null, 'You must provide a controller to play a video'),
         super(key: key);
 
   @override
   State<StatefulWidget> createState() {
-    return new _ChewiePlayerState();
+    return _ChewiePlayerState();
   }
 }
 
@@ -89,7 +88,7 @@ class _ChewiePlayerState extends State<Chewie> {
 
   @override
   Widget build(BuildContext context) {
-    return new PlayerWithControls(
+    return PlayerWithControls(
       controller: _controller,
       onExpandCollapse: () => _pushFullScreenWidget(context),
       aspectRatio: widget.aspectRatio ?? _calculateAspectRatio(context),
@@ -109,17 +108,21 @@ class _ChewiePlayerState extends State<Chewie> {
     _initialize();
   }
 
-  Widget _buildFullScreenVideo(
-      BuildContext context, Animation<double> animation) {
-    return new Scaffold(
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Widget _buildFullScreenVideo(BuildContext context, Animation<double> animation) {
+    return Scaffold(
       resizeToAvoidBottomPadding: false,
-      body: new Container(
+      body: Container(
         alignment: Alignment.center,
         color: Colors.black,
-        child: new PlayerWithControls(
+        child: PlayerWithControls(
           controller: _controller,
-          onExpandCollapse: () =>
-              new Future<dynamic>.value(Navigator.of(context).pop()),
+          onExpandCollapse: () => Future<dynamic>.value(Navigator.of(context).pop()),
           aspectRatio: widget.aspectRatio ?? _calculateAspectRatio(context),
           fullScreen: true,
           isLive: widget.isLive,
@@ -135,7 +138,7 @@ class _ChewiePlayerState extends State<Chewie> {
     Animation<double> animation,
     Animation<double> secondaryAnimation,
   ) {
-    return new AnimatedBuilder(
+    return AnimatedBuilder(
       animation: animation,
       builder: (BuildContext context, Widget child) {
         return _buildFullScreenVideo(context, animation);
@@ -187,8 +190,8 @@ class _ChewiePlayerState extends State<Chewie> {
 
   Future<dynamic> _pushFullScreenWidget(BuildContext context) async {
     final isAndroid = Theme.of(context).platform == TargetPlatform.android;
-    final TransitionRoute<Null> route = new PageRouteBuilder<Null>(
-      settings: new RouteSettings(isInitialRoute: false),
+    final TransitionRoute<Null> route = PageRouteBuilder<Null>(
+      settings: RouteSettings(isInitialRoute: false),
       pageBuilder: _fullScreenRoutePageBuilder,
     );
 
@@ -225,6 +228,8 @@ class _ChewiePlayerState extends State<Chewie> {
     final width = size.width;
     final height = size.height;
 
-    return width > height ? width / height : height / width;
+    return _controller.value.initialized
+        ? _controller.value.aspectRatio
+        : width > height ? width / height : height / width;
   }
 }
